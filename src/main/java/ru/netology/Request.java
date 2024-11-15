@@ -14,12 +14,24 @@ public class Request {
     private final String path; // тип ресурса, к которому клиент хочет получить доступ (/messages)
     private final String queryString; // параметры запроса целиком (после "?")
     private final Map<String, List<String>> queryParams; // параметры запроса распарсеные и упакованые в Мапу
+    private final Map<String, List<String>> postParams;
 
-    public Request(String method, String path,String queryString) {
+    public Request(String method, String path, String queryString, String body) {
         this.method = method;
         this.path = path;
         this.queryString = queryString;
         this.queryParams = parseQueryParams(queryString); // парсим queryString
+        this.postParams = parseParams(body); // парсим тело
+    }
+
+    // метод для парсинга строки параметров из тела сообщения
+    public Map<String, List<String>> parseParams(String params) {
+        if (params != null && !params.isEmpty()) {
+            return URLEncodedUtils.parse(params, StandardCharsets.UTF_8).stream()
+                    .collect(Collectors.groupingBy(pair -> pair.getName(), Collectors.mapping(pair ->
+                            pair.getValue(), Collectors.toList())));
+        }
+        return Map.of();
     }
 
     // метод для получения параметров из Query String
@@ -50,5 +62,16 @@ public class Request {
     public String getQueryParam(String name) {
         List<String> values = queryParams.get(name);
         return (values != null && !values.isEmpty()) ? values.get(0) : null;
+    }
+
+    // метод получение параметра по имени из тела POST
+    public String getPostparam(String name) {
+        List<String> values = postParams.get(name);
+        return (values != null && !values.isEmpty()) ? values.get(0) : null;
+    }
+    // получение всех параметров из тела POST
+
+    public Map<String, List<String>> getPostParams() {
+        return postParams;
     }
 }

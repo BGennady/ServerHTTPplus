@@ -74,9 +74,25 @@ public class Server {
                 path = path.substring(0, queryStartIndex); // перезаписываем путь без параметров
             }
 
+            // парсим заголовки для получения для получени длины тела
+            String line;
+            int contentLength = 0;
+            while (!(line = in.readLine()).isEmpty()) {
+                if (line.startsWith("Content-Length:")) {
+                    contentLength = Integer.parseInt(line.split(": ")[1]);
+                }
+            }
+
+            // получаем тела запроса (если оно есть)
+            String body = null;
+            if (contentLength > 0) {
+                char[] bodyChars = new char[contentLength];
+                in.read(bodyChars, 0, contentLength);  // чтение тела в зависимости от Content-Length
+                body = new String(bodyChars);          // преобразование в строку
+            }
 
             //  объекта запроса
-            Request request = new Request(method, path, queryString);
+            Request request = new Request(method, path, queryString, body);
             // объект хандлера
             Handler handler = findHandler(method, path);
             // проверяем, что не пустой
