@@ -65,10 +65,18 @@ public class Server {
             }
             String method = parts[0];
             String path = parts[1];
+            String queryString = null;
+
+            // находим индекс начинала строки-параметров (после "?")
+            int queryStartIndex = path.indexOf("?");
+            if (queryStartIndex != -1) { // если "?" не найден indexOf вернул -1
+                queryString = path.substring(queryStartIndex + 1); //вырезаем строку от "?"
+                path = path.substring(0, queryStartIndex); // перезаписываем путь без параметров
+            }
+
 
             //  объекта запроса
-            Request request = new Request(method, path, null, null);
-
+            Request request = new Request(method, path, queryString);
             // объект хандлера
             Handler handler = findHandler(method, path);
             // проверяем, что не пустой
